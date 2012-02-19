@@ -3,10 +3,11 @@ import wx
 class FoodSelectionFrame(wx.Frame):
 
     def add_to_tree(self, parent, name, tree):
-        new_parent = self.tree.AppendItem(parent, name)
+        new_parent = self.tree.AppendItem(parent, name, data = wx.TreeItemData(tree[0]))
         if not tree[0] == None:
-            self.values[parent] = tree[0]
-        for key in tree[1].keys():
+            self.values[new_parent] = tree[0]
+
+        for key in sorted(tree[1].keys()):
             self.add_to_tree(new_parent, key, tree[1][key])
 
     def __init__(self, parent, id, title, food_tree):
@@ -35,7 +36,13 @@ class FoodSelectionFrame(wx.Frame):
 
     def OnSelChanged(self, event):
         item = event.GetItem()
-        self.display.SetLabel(self.tree.GetItemText(item))
+        text = ''
+        food = self.tree.GetItemData(item).GetData()
+        if food == None:
+            text = self.tree.GetItemText(item)
+        else:
+            text = str(food)
+        self.display.SetLabel(text)
 
 class FoodSelectorApp(wx.App):
     def __init__(self, id, food_tree):

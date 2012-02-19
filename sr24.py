@@ -1,11 +1,41 @@
 import os
 import re
 import pickle
+from food_selector import select_foods
 
 _sr = "sr24" + os.sep
 _txt = r"~([^~]*)~"
 _num = r"([^\^]*)"
 _sep = r"\^"
+
+def test():
+    _load_fd_group()
+    _load_food_des()
+    global f, t, r
+    f = Food.all()
+    t = category_tree(f)
+    r = reduced_tree('snacks', t['snacks'])
+    
+def find_first_branch(key, node):
+    if len(node[1]) == 1:
+        return find_first_branch(key + ', ' + node[1].keys()[0], node[1].values()[0])
+    return (key, node)
+    
+def reduced_tree(key, node):
+    new_tree = dict()
+    reduced_key = ''
+    reduced_node = []
+    if len(node[1]) == 1 and node[0] == None:
+        reduced_key, reduced_node = find_first_branch(key, node)
+    else:
+        reduced_key = key
+        reduced_node = list(node)
+    new_node = [reduced_node[0], dict()]
+    for child in reduced_node[1]:
+        child_tree = reduced_tree(child, reduced_node[1][child])
+        new_node[1].update(child_tree)
+    new_tree[reduced_key] = new_node
+    return new_tree
 
 def add_to_tree(tree, path, value):
     if len(path) == 1:
@@ -73,7 +103,11 @@ class Food():
         self.nuts = dict()
 
     def __repr__(self):
-        return self.group.name + ', ' + self.name
+        group = self.group.name.lower()
+        name = self.name.lower()
+        if not name.startswith(group):
+            name = group + ', ' + name
+        return name
     
 class Group():
     @staticmethod
