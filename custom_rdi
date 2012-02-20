@@ -1,0 +1,6 @@
+# USDA says about 4.7lbs/day intake, 2.1kg.
+# I rounded up to a nice number.  Note the units are g
+# The really low weighting is because I don't care if we hit it.
+# This is mostly to prevent the thing from added 37 kilos of lightly sweetened water.  Yes it did that.
+# The program adds 100g to each food when it loads the other nutrient data.
+~Weight~^~2500~^~0.001~ 

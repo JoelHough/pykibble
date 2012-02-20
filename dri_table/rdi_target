@@ -1,29 +1,32 @@
-~Vitamin A, RAE~^~900~
-~Vitamin C, total ascorbic acid~^~90~
-~Vitamin D (D2 + D3)~^~15~
-~Vitamin E (alpha-tocopherol)~^~15~
-~Vitamin K (phylloquinone)~^~120~
-~Thiamin~^~1.2~
-~Riboflavin~^~1.3~
-~Niacin~^~16~
-~Vitamin B-6~^~1.3~
-~Folate, total~^~400~
-~Vitamin B-12~^~2.4~
-~Pantothenic acid~^~5~
-~Choline, total~^~50~
-~Calcium, Ca~^~1000~
-~Copper, Cu~^~0.9~
-~Fluoride, F~^~4000~
-~Iron, Fe~^~8~
-~Magnesium, Mg~^~400~
-~Manganese, Mn~^~2.3~
-~Phosphorus, P~^~700~
-~Selenium, Se~^~55~
-~Zinc, Zn~^~11~
-~Potassium, K~^~4700~
-~Sodium, Na~^~1500~
-~Carbohydrate, by difference~^~130~
-~Fiber, total dietary~^~38~
-~18:2 n-6 c,c~^~17~
-~18:3 n-3 c,c,c (ALA)~^~1.6~
-~Protein~^~56~
+~Vitamin A, RAE~^~900~^~1~
+~Vitamin C, total ascorbic acid~^~90~^~1~
+~Vitamin D (D2 + D3)~^~15~^~1~
+~Vitamin E (alpha-tocopherol)~^~15~^~1~
+~Vitamin K (phylloquinone)~^~120~^~1~
+~Thiamin~^~1.2~^~1~
+~Riboflavin~^~1.3~^~1~
+~Niacin~^~16~^~1~
+~Vitamin B-6~^~1.3~^~1~
+~Folate, total~^~400~^~1~
+~Vitamin B-12~^~2.4~^~1~
+~Pantothenic acid~^~5~^~1~
+~Choline, total~^~50~^~1~
+~Calcium, Ca~^~1000~^~1~
+~Copper, Cu~^~0.9~^~1~
+~Fluoride, F~^~4000~^~1~
+~Iron, Fe~^~8~^~1~
+~Magnesium, Mg~^~400~^~1~
+~Manganese, Mn~^~2.3~^~1~
+~Phosphorus, P~^~700~^~1~
+~Selenium, Se~^~55~^~1~
+~Zinc, Zn~^~11~^~1~
+~Potassium, K~^~4700~^~1~
+~Sodium, Na~^~1500~^~1~
+~Carbohydrate, by difference~^~130~^~1~
+~Fiber, total dietary~^~38~^~1~
+~18:2 n-6 c,c~^~17~^~1~
+~18:3 n-3 c,c,c (ALA)~^~1.6~^~1~
+~Protein~^~56~^~1~
+~Cholesterol~^~0~^~0.0001~
+~Fatty acids, total trans~^~0~^~0.0001~
+~Fatty acids, total saturated~^~0~^~0.0001~

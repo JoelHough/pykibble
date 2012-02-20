@@ -22,7 +22,7 @@ class FoodSelectionFrame(wx.Frame):
 
         # Append ALL THE THINGS
         root = self.tree.AddRoot('sr24')
-        for key in food_tree.keys():
+        for key in sorted(food_tree.keys()):
             self.add_to_tree(root, key, food_tree[key])
         
         self.tree.Bind(wx.EVT_TREE_SEL_CHANGED, self.OnSelChanged, id=1)

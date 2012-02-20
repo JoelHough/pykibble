@@ -1,106 +1,156 @@
 import os
 import re
 import pickle
-from food_selector import select_foods
+import numpy as np
+import scipy.optimize as op
+import operator
+import food_selector
 
 _sr = "sr24" + os.sep
 _txt = r"~([^~]*)~"
 _num = r"([^\^]*)"
 _sep = r"\^"
 
-def test():
+_good_groups = [100, 200, 400, 900, 1100, 1200, 1600]
+
+def _test():
     _load_fd_group()
     _load_food_des()
     global f, t, r
     f = Food.all()
-    t = category_tree(f)
-    r = reduced_tree('snacks', t['snacks'])
     
-def find_first_branch(key, node):
+def _find_first_branch(key, node):
     if len(node[1]) == 1:
         return find_first_branch(key + ', ' + node[1].keys()[0], node[1].values()[0])
     return (key, node)
     
-def reduced_tree(key, node):
+def _reduced_tree(tree):
     new_tree = dict()
-    reduced_key = ''
-    reduced_node = []
-    if len(node[1]) == 1 and node[0] == None:
-        reduced_key, reduced_node = find_first_branch(key, node)
-    else:
-        reduced_key = key
-        reduced_node = list(node)
-    new_node = [reduced_node[0], dict()]
-    for child in reduced_node[1]:
-        child_tree = reduced_tree(child, reduced_node[1][child])
-        new_node[1].update(child_tree)
-    new_tree[reduced_key] = new_node
+    for key in tree:
+        node = tree[key]
+        reduced_key = ''
+        reduced_node = []
+        if len(node[1]) == 1 and node[0] == None:
+            reduced_key, reduced_node = _find_first_branch(key, node)
+        else:
+            reduced_key = key
+            reduced_node = list(node)
+        new_node = [reduced_node[0], _reduced_tree(reduced_node[1])]
+        new_tree[reduced_key] = new_node
     return new_tree
 
-def add_to_tree(tree, path, value):
+def _add_to_tree(tree, path, value):
     if len(path) == 1:
         if path[0] in tree:
-           if not tree[path[0]][0] == None:
-               print "Ack! Already have " + str(value)
-               return
-           else:
-               tree[path[0]][0] = value
+            assert tree[path[0]][0] == None, "Ack! Already have " + str(value)
+            tree[path[0]][0] = value
         tree[path[0]] = [value, dict()]
     else:
         if not path[0] in tree:
             tree[path[0]] = [None, dict()]
-        add_to_tree(tree[path[0]][1], path[1:], value)
+        _add_to_tree(tree[path[0]][1], path[1:], value)
 
-def add_to_tree2(tree, path, value):
-    if len(path) == 1:
-        if path[0] in tree:
-            print "Ack!"
-            return
-        tree[path[0]] = value
-    else:
-        if not path[0] in tree:
-            tree[path[0]] = dict()
-        add_to_tree2(tree[path[0]], path[1:], value)
-    
-def category_tree(things):
+def _food_tree(foods):
     result = dict()
-    for thing in things:
-        category = [chunk.strip() for chunk in str(thing).split(",")]
-        add_to_tree(result, category, thing)
-    return result
+    for food in foods:
+        category = [chunk.strip() for chunk in str(food).split(",")]
+        _add_to_tree(result, category, food)
+    return _reduced_tree(result)
 
-#class FoodMatrix():
-#
-#    def __init__(self, foods, nuts):
-#        n, m = 
+def display_foods(foods):
+    food_selector.select_foods(_food_tree(foods))
+
 class Recipe():
+    def __repr__(self):
+        if len(self.food_amounts) == 0:
+            return "Empty recipe"
+        food_amounts = sorted(self.food_amounts.items(), key=operator.itemgetter(1), reverse=True)
+        width = max([len(str(fa[0])) for fa in food_amounts])
+        result = ""
+        for fa in food_amounts:
+            result += ('{:<' + str(width) + "} | {}g\n").format(str(fa[0]), str(fa[1] * 100))
+        return result
+    
     def add_food(self, food, amount):
-        if food in self.foods:
-            self.foods[food] += amount
-        else:
-            self.foods[food] = amount
+        """ Food amount in grams """
+        # The data lists food in 100g units
+        self.food_amounts[food] = amount / 100 + (self.food_amounts.get(food) or 0)
 
+    def get_di(self):
+        """ The nutrient totals with the current food amounts.  Lines up with di_target """
+        dis = []
+        for di in self.target_di:
+            amount = 0
+            for food in self.food_amounts:
+                amount += (food.nut_amounts.get(di.nut) or 0) * self.food_amounts[food]
+            dis.append(DI(di.nut, amount, di.weight))
+        return dis
+    
+    def complete_with(self, foods):
+        # This function does these things
+        # Adjust rdi based on already added foods
+        # Build food_mat from foods
+        # Normalize and weight
+        # Linear regress
+        # Remove zero foods from result
+        n, m = len(self.target_di), len(foods)
+        food_mat = np.zeros([n, m])
+        di_amounts = np.zeros([n])
+        di_so_far = self.get_di()
+        norm_terms = np.ones([n])
+        missing = dict()
+        for i in range(n):
+            di = self.target_di[i]
+            di_amounts[i] = di.amount - di_so_far[i].amount
+            if not di_amounts[i] == 0:
+                norm_terms[i] = di_amounts[i]
+                di_amounts[i] *= di.weight / norm_terms[i]
+                
+            for j in range(m):
+                food = foods[j]
+                try:
+                    food_mat[i][j] = food.nut_amounts[di.nut] * di.weight / norm_terms[i]
+                except KeyError:
+                    pass
+                    # print "Warning: No nutrient data for " + str(nut) + " in " + str(food)
+                    # missing[nut] = (missing.get(nut) or 0) + 1
+        amounts, error = op.nnls(food_mat, di_amounts)
+        for j in range(m):
+            if amounts[j] > 0:
+                self.add_food(foods[j], amounts[j] * 100)
+        return error
+        
     def __init__(self, rdi):
-        self.foods = dict()
-        self.rdi = rdi
+        self.food_amounts = dict()
+        self.target_di = rdi
         
 class Food():
     @staticmethod
+    def by_group(group):
+        try:
+            return [food for food in Food.all() if food.group in group]
+        except TypeError:
+            return [food for food in Food.all() if food.group == group]
+                
+    @staticmethod
     def by_id(id):
-        return _foods[id]
+        try:
+            return map(_foods.get, id)
+        except TypeError:
+            return _foods[id]
 
     @staticmethod
     def all():
         return _foods.values()
 
     def add_nut(self, nut, amount):
-        self.nuts[nut] = amount
+        self.nut_amounts[nut] = amount
         
     def __init__(self, food_id, group, name):
         self.id = food_id
         self.group = group
         self.name = name
-        self.nuts = dict()
+        self.nut_amounts = dict()
 
     def __repr__(self):
         group = self.group.name.lower()
@@ -112,7 +162,10 @@ class Food():
 class Group():
     @staticmethod
     def by_id(id):
-        return _groups[id]
+        try:
+            return map(_groups.get, id)
+        except TypeError:
+            return _groups[id]
 
     @staticmethod
     def all():
@@ -127,8 +180,21 @@ class Group():
     
 class Nutrient():
     @staticmethod
+    def by_name(name):
+        if isinstance(name, str):
+            for nut in _nuts.values():
+                if nut.name == name:
+                    return nut
+        else:
+            return map(Nutrient.by_name, name)
+        raise KeyError(str(name) + " not found!")
+        
+    @staticmethod
     def by_id(id):
-        return _nuts[id]
+        try:
+            return map(_nuts.get, id)
+        except TypeError:
+            return _nuts[id]
 
     @staticmethod
     def all():
@@ -140,12 +206,16 @@ class Nutrient():
         self.name = name
 
     def __repr__(self):
-        return name + " " + units
+        return self.units + " " + self.name
     
-class RDI():
-    def __init__(self, nut, amount):
+class DI():
+    def __init__(self, nut, amount, weight):
         self.nut = nut
         self.amount = amount
+        self.weight = weight
+
+    def __repr__(self):
+        return str(self.amount) + str(self.nut)
 
 def _none(v):
     return None
@@ -161,6 +231,7 @@ def _get_field_lists(filename, *fields):
     with open(filename, 'r') as f:
         rs = []
         for line in f.readlines():
+            if line.strip().startswith('#'): continue
             groups = re.match(r"^" + _sep.join(field_types), line).groups()
             converted = map(call, to_types, groups)
             result = filter(_not_none, converted)
@@ -177,13 +248,14 @@ def _load_fd_group():
     _groups = dict([(group_id, Group(group_id, name)) for group_id, name in _get_field_lists(_sr + 'FD_GROUP.txt', (_txt, int), (_txt, str))])
 
 def _load_nutr_def():
-    """ Loads NUTR_DEF.txt """
+    """ Loads NUTR_DEF.txt, plus a fake "Weight" nutrient, id 0 """
     global _nuts
     #if os.path.exists(_sr + 'nuts.pkl'):
     #    with open(_sr + 'nuts.pkl') as f:
     #        _nuts = pickle.load(f)
     #else:
     _nuts = dict([(nut_id, Nutrient(nut_id, units, name)) for nut_id, units, name in _get_field_lists(_sr + 'NUTR_DEF.txt', (_txt, int), (_txt, str), (_txt, _none), (_txt, str))])
+    _nuts[0] = Nutrient(0, 'g', 'Weight')
 
 def _load_foods():
     """ Loads Food structures with data from FOOD_DES.txt and NUT_DATA.txt """
@@ -202,9 +274,16 @@ def _load_food_des():
     return False
 
 def _load_nut_data():
-    """ Loads NUT_DATA.txt """
+    """ Loads NUT_DATA.txt, plus adds 100g of weight to each food as nutrient """
     for food_id, nut_id, amount in _get_field_lists(_sr + 'NUT_DATA.txt', (_txt, int), (_txt, int), (_num, float)):
         Food.by_id(food_id).add_nut(Nutrient.by_id(nut_id), amount)
+    for food in Food.all():
+        food.add_nut(Nutrient.by_id(0), 100)
+
+def _load_rdi():
+    """ Loads rdi_target """
+    global _rdi
+    _rdi = [DI(Nutrient.by_name(name), amount, weight) for name, amount, weight in _get_field_lists("rdi_target", (_txt, str), (_txt, float), (_txt, float))]
 
 def _pickle_globals():
     with open(_sr + 'nuts.pkl', 'w') as f:
@@ -213,14 +292,12 @@ def _pickle_globals():
         pickle.dump(_groups, f)
     with open(_sr + 'foods.pkl', 'w') as f:
         pickle.dump(_foods, f)
+    with open('rdi.pkl', 'w') as f:
+        pickle.dump(_rdi, f)
     
 def _load_globals():
-    """ Loads the module lists in the proper order (group, nut, food, data) """
+    """ Loads the module lists in the proper order (group, nut, food, data, rdi) """
     _load_fd_group()
     _load_nutr_def()
     _load_foods()
-
-# def load_rdi_data():
-#   """ Loads rdi_target, returns (nut_names, nut_values) """
-#   return get_fields(rdi + "rdi_target", (txt, str), (txt, float))
-
+    _load_rdi()
