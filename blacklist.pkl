@@ -1,0 +1,42 @@
+(lp0
+S' raw'
+p1
+aS' isolate'
+p2
+aS' industrial'
+p3
+aS' soyburgers'
+p4
+aS' crude'
+p5
+aS' vitasoy'
+p6
+aS'calabash'
+p7
+aS' naranjilla'
+p8
+aS' unprepared'
+p9
+aS' yeast extract spread'
+p10
+aS' harvest burger'
+p11
+aS' egg substitute'
+p12
+aS' bacon, meatless'
+p13
+aS' sisymbrium'
+p14
+aS' salad dressing'
+p15
+aS' melon balls'
+p16
+aS' kernels on cob'
+p17
+aS' port de salut'
+p18
+aS' tilsit'
+p19
+aS' egg, white, dried'
+p20
+a.

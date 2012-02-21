@@ -11,7 +11,7 @@ _txt = r"~([^~]*)~"
 _num = r"([^\^]*)"
 _sep = r"\^"
 
-_good_groups = [100, 200, 400, 900, 1100, 1200, 1600]
+_good_groups = [100, 200, 400, 900, 1100, 1200, 1600, 2000]
 
 def _test():
     _load_fd_group()
@@ -68,8 +68,12 @@ class Recipe():
         width = max([len(str(fa[0])) for fa in food_amounts])
         result = ""
         for fa in food_amounts:
-            result += ('{:<' + str(width) + "} | {}g\n").format(str(fa[0]), str(fa[1] * 100))
+            result += ('{:>5}:{:<' + str(width) + "} | {}g\n").format(str(fa[0].id), str(fa[0]), str(fa[1] * 100))
         return result
+
+    def deficiencies(self):
+        di = self.get_di()
+        return sorted([DI(di[i].nut, self.target_di[i].amount - di[i].amount, di[i].weight) for i in range(len(di))], key=lambda (d): d.amount, reverse=True)
     
     def add_food(self, food, amount):
         """ Food amount in grams """
@@ -126,6 +130,16 @@ class Recipe():
         
 class Food():
     @staticmethod
+    def save_list(foods, filename):
+        with open(filename, 'w') as f:
+            pickle.dump(list([food.id for food in foods]), f)
+
+    @staticmethod
+    def load_list(filename):
+        with open(filename) as f:
+            return Food.by_id(pickle.load(f))
+            
+    @staticmethod
     def by_group(group):
         try:
             return [food for food in Food.all() if food.group in group]
@@ -146,10 +160,11 @@ class Food():
     def add_nut(self, nut, amount):
         self.nut_amounts[nut] = amount
         
-    def __init__(self, food_id, group, name):
+    def __init__(self, food_id, group, name, manufacturer):
         self.id = food_id
         self.group = group
         self.name = name
+        self.manufacturer = manufacturer
         self.nut_amounts = dict()
 
     def __repr__(self):
@@ -182,6 +197,9 @@ class Nutrient():
     @staticmethod
     def by_name(name):
         if isinstance(name, str):
+            # Special case since there are two 'Energy' nutrients.  We prefer the kcal (rather than kj) entry.
+            if name == "Energy":
+                return Nutrient.by_id(208)
             for nut in _nuts.values():
                 if nut.name == name:
                     return nut
@@ -270,7 +288,7 @@ def _load_food_des():
     #        _foods = pickle.load(f)
     #    return True
     #else:
-    _foods = dict([(food_id, Food(food_id, Group.by_id(group_id), name)) for food_id, group_id, name in _get_field_lists(_sr + 'FOOD_DES.txt', (_txt, int), (_txt, int), (_txt, str))])
+    _foods = dict([(food_id, Food(food_id, Group.by_id(group_id), name, manufacturer)) for food_id, group_id, name, manufacturer in _get_field_lists(_sr + 'FOOD_DES.txt', (_txt, int), (_txt, int), (_txt, str), (_txt, _none), (_txt, _none), (_txt, str))])
     return False
 
 def _load_nut_data():

@@ -13,7 +13,6 @@
 ~Choline, total~^~50~^~1~
 ~Calcium, Ca~^~1000~^~1~
 ~Copper, Cu~^~0.9~^~1~
-~Fluoride, F~^~4000~^~1~
 ~Iron, Fe~^~8~^~1~
 ~Magnesium, Mg~^~400~^~1~
 ~Manganese, Mn~^~2.3~^~1~
@@ -28,5 +27,5 @@
 ~18:3 n-3 c,c,c (ALA)~^~1.6~^~1~
 ~Protein~^~56~^~1~
 ~Cholesterol~^~0~^~0.0001~
-~Fatty acids, total trans~^~0~^~0.0001~
-~Fatty acids, total saturated~^~0~^~0.0001~
+~Fatty acids, total trans~^~0~^~0.001~
+~Fatty acids, total saturated~^~0~^~0.01~
