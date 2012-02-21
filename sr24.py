@@ -71,10 +71,18 @@ class Recipe():
             result += ('{:>5}:{:<' + str(width) + "} | {}g\n").format(str(fa[0].id), str(fa[0]), str(fa[1] * 100))
         return result
 
-    def deficiencies(self):
+    def di_off_by(self):
         di = self.get_di()
-        return sorted([DI(di[i].nut, self.target_di[i].amount - di[i].amount, di[i].weight) for i in range(len(di))], key=lambda (d): d.amount, reverse=True)
-    
+        results = []
+        for i in range(len(di)):
+            percent = 0
+            diff = di[i].amount - self.target_di[i].amount
+            if self.target_di[i].amount > 0:
+                percent = diff / self.target_di[i].amount
+            off_by = DI(di[i].nut, diff, di[i].weight)
+            results.append((percent, off_by))
+        return sorted(results, key=operator.itemgetter(0), reverse=True)
+
     def add_food(self, food, amount):
         """ Food amount in grams """
         # The data lists food in 100g units
