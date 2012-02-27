@@ -60,6 +60,7 @@ def _food_tree(foods):
 def display_foods(foods):
     food_selector.select_foods(_food_tree(foods))
 
+        
 class Recipe():
     def __repr__(self):
         if len(self.food_amounts) == 0:
@@ -86,6 +87,9 @@ class Recipe():
     def add_food_ids(self, foods):
         for food in foods:
             self.add_food(Food.by_id(food[0]), food[1])
+
+    def get_food_ids(self):
+        return [(fa[0].id, fa[1]) for fa in self.food_amounts.items()]
 
     def add_food(self, food, amount):
         """ Food amount in grams """
