@@ -4,46 +4,54 @@
 # This is mostly to prevent the thing from added 37 kilos of lightly sweetened water.  Yes it did that.
 # The program adds 100g to each food when it loads the other nutrient data.
 # If you don't include beverages in the search, commenting this is usually safe
-#~Weight~^~2500~^~0.001~
+#~Weight~^~2500~^~0~^~5000~^~1~
 # The program assumes Energy is in kcal rather than kj.  The SR has both.
-~Energy~^~1500~^~0.01~
-~Vitamin A, RAE~^~900~^~1~
-~Vitamin C, total ascorbic acid~^~90~^~1~
-~Vitamin D (D2 + D3)~^~15~^~1~
-~Vitamin E (alpha-tocopherol)~^~15~^~1~
-~Vitamin K (phylloquinone)~^~120~^~1~
-~Thiamin~^~1.2~^~1~
-~Riboflavin~^~1.3~^~1~
-~Niacin~^~16~^~1~
-~Vitamin B-6~^~1.3~^~1~
-~Folate, total~^~400~^~1~
-~Vitamin B-12~^~2.4~^~1~
-~Pantothenic acid~^~5~^~1~
-~Choline, total~^~50~^~1~
-~Calcium, Ca~^~1000~^~1~
-~Copper, Cu~^~0.9~^~1~
-~Iron, Fe~^~8~^~1~
-~Magnesium, Mg~^~400~^~1~
-~Manganese, Mn~^~2.3~^~1~
-~Phosphorus, P~^~700~^~1~
-~Selenium, Se~^~55~^~1~
-~Zinc, Zn~^~11~^~1~
-~Potassium, K~^~4700~^~1~
-~Sodium, Na~^~1500~^~1~
-~Carbohydrate, by difference~^~130~^~1~
-~Fiber, total dietary~^~38~^~1~
-~18:2 n-6 c,c~^~17~^~1~
-~18:3 n-3 c,c,c (ALA)~^~1.6~^~1~
-~Protein~^~56~^~1~
-~Cholesterol~^~0~^~0.0001~
-~Fatty acids, total trans~^~0~^~0.001~
-~Fatty acids, total saturated~^~0~^~0.01~
-~Isoleucine~^~2.0~^~1~
-~Leucine~^~3.9~^~1~
-~Lysine~^~3.0~^~1~
-~Methionine~^~1.04~^~1~
-~Cystine~^~0.41~^~1~
-~Phenylalanine~^~2.5~^~1~
-~Threonine~^~1.5~^~1~
-~Tryptophan~^~0.4~^~1~
-~Valine~^~2.6~^~1~
+~Energy~^~1500~^~1000~^~2000~^~1~
+~Calcium, Ca~^~1000~^~1000~^~2200~^~1~
+~Copper, Cu~^~0.9~^~0.9~^~10~^~1~
+~Iron, Fe~^~8~^~8~^~45~^~1~
+~Magnesium, Mg~^~400~^~400~^~500~^~1~
+~Manganese, Mn~^~2.3~^~2.3~^~11~^~1~
+~Phosphorus, P~^~700~^~700~^~4000~^~1~
+~Selenium, Se~^~55~^~55~^~400~^~1~
+~Zinc, Zn~^~11~^~11~^~40~^~1~
+~Potassium, K~^~4700~^~4700~^~6000~^~1~
+~Sodium, Na~^~1500~^~1500~^~3000~^~1~
+~Carbohydrate, by difference~^~130~^~100~^~150~^~1~
+~Fiber, total dietary~^~38~^~25~^~40~^~1~
+~18:2 n-6 c,c~^~17~^~13~^~20~^~0.8~
+~18:3 n-3 c,c,c (ALA)~^~1.6~^~1.2~^~1.8~^~0.8~
+~Protein~^~56~^~45~^~60~^~1~
+~Cholesterol~^~0~^~0~^~20~^~1~
+~Fatty acids, total trans~^~0~^~0~^~5~^~1~
+~Fatty acids, total saturated~^~0~^~0~^~5~^~1~
+~Vitamin A, RAE~^~900~^~900~^~3000~^~0.9~
+~Vitamin C, total ascorbic acid~^~90~^~90~^~2000~^~0.6~
+~Vitamin D (D2 + D3)~^~15~^~15~^~100~^~1~
+~Vitamin E (alpha-tocopherol)~^~15~^~15~^~1000~^~1~
+# Vitamin K UL ND
+~Vitamin K (phylloquinone)~^~120~^~120~^~1000~^~1~
+# Thiamin UL ND
+~Thiamin~^~1.2~^~1.2~^~5.0~^~0.9~
+# Riboflavin UL ND
+~Riboflavin~^~1.3~^~1.3~^~5.0~^~0.9~
+# Niacin UL for synthetic only
+~Niacin~^~16~^~16~^~35~^~0.9~
+~Vitamin B-6~^~1.3~^~1.3~^~100~^~0.9~
+# Folate UL for synthetic only
+~Folate, total~^~400~^~400~^~1000~^~0.7~
+# B-12 UL ND
+~Vitamin B-12~^~2.4~^~2.4~^~24~^~0.7~
+# Pant. Acid UL ND
+~Pantothenic acid~^~5~^~5~^~10~^~0.9~
+~Choline, total~^~500~^~500~^~3500~^~0.9~
+# There are no UL data for amino acids. SWAG is to set it to double.
+~Isoleucine~^~2.0~^~2.0~^~4.0~^~1~
+~Leucine~^~3.9~^~3.9~^~7.8~^~1~
+~Lysine~^~3.0~^~3.0~^~6.0~^~1~
+~Methionine~^~1.04~^~1.04~^~2.08~^~1~
+~Cystine~^~0.41~^~0.41~^~0.82~^~1~
+~Phenylalanine~^~2.5~^~2.5~^~5.0~^~1~
+~Threonine~^~1.5~^~1.5~^~3.0~^~1~
+~Tryptophan~^~0.4~^~0.4~^~0.8~^~1~
+~Valine~^~2.6~^~2.6~^~5.2~^~1~

@@ -1,0 +1,3 @@
+Adding retention values caused me to break the pipeline of *_[nuts|val|weight] -> rdi_target because it sucked having everything in separate files.
+
+Use the rdi_target_* files now.

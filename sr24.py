@@ -21,7 +21,7 @@ def _test():
     
 def _find_first_branch(key, node):
     if len(node[1]) == 1:
-        return find_first_branch(key + ', ' + node[1].keys()[0], node[1].values()[0])
+        return _find_first_branch(key + ', ' + node[1].keys()[0], node[1].values()[0])
     return (key, node)
     
 def _reduced_tree(tree):
@@ -76,17 +76,21 @@ class Recipe():
         results = []
         for i in range(len(di)):
             percent = 0
-            diff = di[i].amount - self.target_di[i].amount
+            diff = max(min(0, di[i].amount - di[i].lower), di[i].amount - di[i].upper)
             if self.target_di[i].amount > 0:
                 percent = diff / self.target_di[i].amount
-            off_by = DI(di[i].nut, diff, di[i].weight)
+            off_by = DI(di[i].nut, diff, di[i].lower, di[i].upper, di[i].retention)
             results.append((percent, off_by))
         return sorted(results, key=operator.itemgetter(0), reverse=True)
+
+    def add_food_ids(self, foods):
+        for food in foods:
+            self.add_food(Food.by_id(food[0]), food[1])
 
     def add_food(self, food, amount):
         """ Food amount in grams """
         # The data lists food in 100g units
-        self.food_amounts[food] = amount / 100 + (self.food_amounts.get(food) or 0)
+        self.food_amounts[food] = amount / 100.0 + (self.food_amounts.get(food) or 0)
 
     def get_di(self):
         """ The nutrient totals with the current food amounts.  Lines up with di_target """
@@ -95,14 +99,14 @@ class Recipe():
             amount = 0
             for food in self.food_amounts:
                 amount += (food.nut_amounts.get(di.nut) or 0) * self.food_amounts[food]
-            dis.append(DI(di.nut, amount, di.weight))
+            dis.append(DI(di.nut, amount, di.lower, di.upper, di.retention))
         return dis
     
     def complete_with(self, foods):
         # This function does these things
         # Adjust rdi based on already added foods
         # Build food_mat from foods
-        # Normalize and weight
+        # Normalizes and weights using half of upper-lower
         # Linear regress
         # Remove zero foods from result
         n, m = len(self.target_di), len(foods)
@@ -113,15 +117,13 @@ class Recipe():
         missing = dict()
         for i in range(n):
             di = self.target_di[i]
-            di_amounts[i] = di.amount - di_so_far[i].amount
-            if not di_amounts[i] == 0:
-                norm_terms[i] = di_amounts[i]
-                di_amounts[i] *= di.weight / norm_terms[i]
+            norm_terms[i] = (di.upper - di.lower) / 2.0
+            di_amounts[i] = (di.lower + norm_terms[i] - di_so_far[i].amount) / norm_terms[i]
                 
             for j in range(m):
                 food = foods[j]
                 try:
-                    food_mat[i][j] = food.nut_amounts[di.nut] * di.weight / norm_terms[i]
+                    food_mat[i][j] = food.nut_amounts[di.nut] / norm_terms[i]
                 except KeyError:
                     pass
                     # print "Warning: No nutrient data for " + str(nut) + " in " + str(food)
@@ -135,35 +137,43 @@ class Recipe():
     def __init__(self, rdi):
         self.food_amounts = dict()
         self.target_di = rdi
+
+class FoodList(list):
+    def where(self, name_has=None, name_has_not=None, group=None, group_in=None, id=None, id_in=None, manufacturer=None):
+        return FoodList([food for food in self if (
+    (name_has == None or _contains_any(str(food), [name_has] if isinstance(name_has, str) else name_has)) and
+    (name_has_not == None or not _contains_any(str(food), [name_has_not] if isinstance(name_has_not, str) else name_has_not)) and
+    (group == None or food.group == group) and
+    (group_in == None or food.group in group_in) and
+    (id == None or food.id == id) and
+    (id_in == None or foor.id in id_in) and
+    (manufacturer == None or food.manufacturer == manufacturer)
+    )])
+
+    def id_dict(self):
+        return dict(zip(self.ids(), self))
+    
+    def ids(self):
+        return [f.id for f in self]
+    
+    def save(self, filename):
+        _save_to_file(filename, self.ids())
+
+    @staticmethod
+    def load(filename):
+        return FoodList(Food.by_id(_load_from_file(filename)))
         
 class Food():
     @staticmethod
-    def save_list(foods, filename):
-        with open(filename, 'w') as f:
-            pickle.dump(list([food.id for food in foods]), f)
-
-    @staticmethod
-    def load_list(filename):
-        with open(filename) as f:
-            return Food.by_id(pickle.load(f))
-            
-    @staticmethod
-    def by_group(group):
-        try:
-            return [food for food in Food.all() if food.group in group]
-        except TypeError:
-            return [food for food in Food.all() if food.group == group]
-                
-    @staticmethod
     def by_id(id):
         try:
-            return map(_foods.get, id)
+            return FoodList(map(_foods.get, id))
         except TypeError:
             return _foods[id]
 
     @staticmethod
     def all():
-        return _foods.values()
+        return FoodList(_foods.values())
 
     def add_nut(self, nut, amount):
         self.nut_amounts[nut] = amount
@@ -235,10 +245,12 @@ class Nutrient():
         return self.units + " " + self.name
     
 class DI():
-    def __init__(self, nut, amount, weight):
+    def __init__(self, nut, amount, lower, upper, retention):
         self.nut = nut
-        self.amount = amount
-        self.weight = weight
+        self.amount = amount / retention
+        self.lower = lower
+        self.upper = upper
+        self.retention = retention
 
     def __repr__(self):
         return str(self.amount) + str(self.nut)
@@ -309,7 +321,7 @@ def _load_nut_data():
 def _load_rdi():
     """ Loads rdi_target """
     global _rdi
-    _rdi = [DI(Nutrient.by_name(name), amount, weight) for name, amount, weight in _get_field_lists("rdi_target", (_txt, str), (_txt, float), (_txt, float))]
+    _rdi = [DI(Nutrient.by_name(name), amount, lower, upper, retention) for name, amount, lower, upper, retention in _get_field_lists("rdi_target", (_txt, str), (_txt, float), (_txt, float), (_txt, float), (_txt, float))]
 
 def _pickle_globals():
     with open(_sr + 'nuts.pkl', 'w') as f:
@@ -327,3 +339,21 @@ def _load_globals():
     _load_nutr_def()
     _load_foods()
     _load_rdi()
+
+def _save_to_file(filename, obj):
+    with open(filename, 'wb') as f:
+        pickle.dump(obj, f)
+
+def _load_from_file(filename):
+    with open(filename, 'rb') as f:
+        return pickle.load(f)
+
+def _load_blacklist():
+    global blacklist
+    blacklist = _load_from_file('blacklist.pkl')
+
+def _contains_any(container, things):
+    for t in things:
+        if t in container:
+           return True
+    return False
