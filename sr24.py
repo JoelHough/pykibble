@@ -3,7 +3,9 @@ import re
 import pickle
 import numpy as np
 import scipy.optimize as op
+#import matplotlib.pyplot as plt
 import operator
+import math
 import food_selector
 
 _sr = "sr24" + os.sep
@@ -69,8 +71,19 @@ class Recipe():
         width = max([len(str(fa[0])) for fa in food_amounts])
         result = ""
         for fa in food_amounts:
-            result += ('{:>5}:{:<' + str(width) + "} | {}g\n").format(str(fa[0].id), str(fa[0]), str(fa[1] * 100))
+            result += ('{:>5}:{:<' + str(width) + "} | {}g\n").format(str(fa[0].id), str(fa[0]), str(fa[1] * 100.0))
         return result
+
+    # def plot_di(self):
+    #     di_vals = dict()
+    #     foods = [f.name for f in self.food_amounts]
+    #     last = (0,) * len(foods)
+    #     ind = np.arange(len(foods))
+    #     for rdi in self.target_di:            
+    #         vals = [(f[0].nut_amounts.get(rdi.nut, 0.0) * f[1]) / (rdi.lower + (rdi.upper - rdi.lower) / 2) for f in self.food_amounts.items()]
+    #         plt.bar(ind, vals, 0.5, bottom=last)
+    #         last = list(vals)
+    #     plt.show()
 
     def di_off_by(self):
         di = self.get_di()
@@ -89,10 +102,10 @@ class Recipe():
             self.add_food(Food.by_id(food[0]), food[1])
 
     def get_food_ids(self):
-        return [(fa[0].id, fa[1]) for fa in self.food_amounts.items()]
+        return [(fa[0].id, fa[1] * 100.0) for fa in self.food_amounts.items()]
 
     def add_food(self, food, amount):
-        """ Food amount in grams """
+        """ Food amount in g """
         # The data lists food in 100g units
         self.food_amounts[food] = amount / 100.0 + (self.food_amounts.get(food) or 0)
 
@@ -135,7 +148,7 @@ class Recipe():
         amounts, error = op.nnls(food_mat, di_amounts)
         for j in range(m):
             if amounts[j] > 0:
-                self.add_food(foods[j], amounts[j] * 100)
+                self.add_food(foods[j], amounts[j] * 100.0)
         return error
         
     def __init__(self, rdi):
@@ -361,3 +374,30 @@ def _contains_any(container, things):
         if t in container:
            return True
     return False
+
+def save_working():
+    _save_to_file('current_blacklist.pkl', blacklist)
+    f.save('current_foods.pkl')
+    _save_to_file('current_base_ingredients.pkl', i)
+    _save_to_file('current_recipe.pkl', r.get_food_ids())
+
+def load_working():
+    global blacklist, f, i, r
+    blacklist = _load_from_file('current_blacklist.pkl')
+    f = FoodList.load('current_foods.pkl')
+    i = _load_from_file('current_base_ingredients.pkl')
+    r = Recipe(_rdi)
+    r.add_food_ids(_load_from_file('current_recipe.pkl'))
+    
+def ban(name):
+    global blacklist, f
+    blacklist.append(name)
+    f = f.where(name_has_not=blacklist)
+
+def remix():
+    global r, i, f
+    r = Recipe(_rdi)
+    r.add_food_ids(i)
+    r.complete_with(f)
+    print r
+    print r.di_off_by()

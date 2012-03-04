@@ -1,0 +1,148 @@
+(lp0
+S' isolate'
+p1
+aS' industrial'
+p2
+aS' soyburgers'
+p3
+aS' crude'
+p4
+aS' vitasoy'
+p5
+aS'calabash'
+p6
+aS' naranjilla'
+p7
+aS' unprepared'
+p8
+aS' yeast extract spread'
+p9
+aS' harvest burger'
+p10
+aS' egg substitute'
+p11
+aS', meatless'
+p12
+aS' sisymbrium'
+p13
+aS' salad dressing'
+p14
+aS' melon balls'
+p15
+aS' kernels on cob'
+p16
+aS' port de salut'
+p17
+aS' tilsit'
+p18
+aS' egg, white, dried'
+p19
+aS'baked products, '
+p20
+aS'ethnic foods, '
+p21
+aS'beef products, '
+p22
+aS'meals, entrees, and sidedishes, '
+p23
+aS'breakfast cereals, '
+p24
+aS'lamb, veal, and game products, '
+p25
+aS'baby foods, '
+p26
+aS'fast foods, '
+p27
+aS'sausages and luncheon meats, '
+p28
+aS'snacks, '
+p29
+aS'soups, sauces, and gravies, '
+p30
+aS'finfish and shellfish products, '
+p31
+aS'restaurant foods, '
+p32
+aS'pork products, '
+p33
+aS'sweets, '
+p34
+aS'poultry products, '
+p35
+aS'beverages, '
+p36
+aS' uncooked'
+p37
+aS' campbell soup company'
+p38
+aS'cheese'
+p39
+aS' hydrogenated'
+p40
+aS' sesbania'
+p41
+aS' chicory'
+p42
+aS' feijoa'
+p43
+aS' cardoon'
+p44
+aS' peel,'
+p45
+aS' vinegar'
+p46
+aS' butterbur'
+p47
+aS' imitation'
+p48
+aS'vanilla extract'
+p49
+aS' jute'
+p50
+aS' cornsalad'
+p51
+aS' egg, duck'
+p52
+aS' egg, quail'
+p53
+aS' egg, goose'
+p54
+aS' egg, turkey'
+p55
+aS' boiled, drained'
+p56
+aS' scrambled'
+p57
+aS' vinespinach'
+p58
+aS'egg, whole, dried'
+p59
+aS' taro shoots'
+p60
+aS' taro, shoots'
+p61
+aS' egg, yolk'
+p62
+aS' lambsquarters'
+p63
+aS' fresh-refrigerated'
+p64
+aS' chervil'
+p65
+aS' potato salad'
+p66
+aS' soy protein concentrate'
+p67
+aS' seaweed'
+p68
+aS' broccoli'
+p69
+aS' egg,'
+p70
+aS' egg mix'
+p71
+aS' palm hearts'
+p72
+aS' cabbage, japanese style'
+p73
+a.
