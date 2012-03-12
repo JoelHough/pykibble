@@ -60,7 +60,7 @@ def _food_tree(foods):
     return _reduced_tree(result)
 
 def display_foods(foods):
-    food_selector.select_foods(_food_tree(foods))
+    return food_selector.select_foods(_food_tree(foods))
 
 class Recipe():
     def __repr__(self):

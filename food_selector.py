@@ -1,5 +1,6 @@
 import wx
 
+selected_id = None
 class FoodSelectionFrame(wx.Frame):
 
     def add_to_tree(self, parent, name, tree):
@@ -35,13 +36,16 @@ class FoodSelectionFrame(wx.Frame):
         self.Centre()
 
     def OnSelChanged(self, event):
+        global selected_id
         item = event.GetItem()
         text = ''
         food = self.tree.GetItemData(item).GetData()
         if food == None:
             text = self.tree.GetItemText(item)
+            selected_id = None
         else:
-            text = str(food)
+            text = str(food.id) + ': ' + str(food)
+            selected_id = food.id
         self.display.SetLabel(text)
 
 class FoodSelectorApp(wx.App):
@@ -58,3 +62,4 @@ class FoodSelectorApp(wx.App):
 def select_foods(food_tree):
     app = FoodSelectorApp(0, food_tree)
     app.MainLoop()
+    return selected_id
