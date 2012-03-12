@@ -79,16 +79,16 @@ class Recipe():
         dis = self.target_di
         last = np.array((0.0,) * len(dis))
         ind = np.arange(len(dis))
-        for f in foods:
-            #vals = [(f[0].nut_amounts.get(rdi.nut, 0.0) * f[1]) / (rdi.lower or rdi.upper + 0 * (rdi.lower + (rdi.upper - rdi.lower) / 2)) for f in self.food_amounts.items()]
-            vals = np.array([f.nut_amounts.get(di.nut, 0.0) * self.food_amounts[f] / (di.lower or di.upper) for di in dis])
+        for fd in foods:
+            #vals = [(fd[0].nut_amounts.get(rdi.nut, 0.0) * fd[1]) / (rdi.lower or rdi.upper + 0 * (rdi.lower + (rdi.upper - rdi.lower) / 2)) for fd in self.food_amounts.items()]
+            vals = np.array([fd.nut_amounts.get(di.nut, 0.0) * self.food_amounts[fd] / (di.lower or di.upper) for di in dis])
             plt.bar(ind, vals, 0.5, bottom=last)
             last += vals
         plt.xticks(ind + 0.5 / 2.0, [di.nut.name for di in dis], rotation='vertical')
         plt.show()
 
     def sources_of(self, nut):
-        return sorted([(f[0], f[1] * f[0].nut_amounts.get(nut, 0)) for f in self.food_amounts.items()], key=lambda (x):x[1], reverse=True)
+        return sorted([(fd[0], fd[1] * fd[0].nut_amounts.get(nut, 0)) for fd in self.food_amounts.items()], key=lambda (x):x[1], reverse=True)
         
     def di_off_by(self):
         di = self.get_di()
@@ -101,6 +101,9 @@ class Recipe():
             off_by = DI(di[i].nut, diff, di[i].lower, di[i].upper, di[i].retention)
             results.append((percent, off_by))
         return sorted(results, key=operator.itemgetter(0), reverse=True)
+
+    def add_food_by_id(self, id, amount):
+        self.add_food(Food.by_id(id), amount)
 
     def add_food_ids(self, foods):
         for food in foods:
@@ -173,13 +176,13 @@ class FoodList(list):
     )])
 
     def by_nutrient(self, nut):
-        return FoodList(sorted(self, key=lambda (f):f.nut_amounts.get(nut, 0), reverse=True))
+        return FoodList(sorted(self, key=lambda (fd):fd.nut_amounts.get(nut, 0), reverse=True))
     
     def id_dict(self):
         return dict(zip(self.ids(), self))
     
     def ids(self):
-        return [f.id for f in self]
+        return [fd.id for fd in self]
     
     def save(self, filename):
         _save_to_file(filename, self.ids())
@@ -416,7 +419,7 @@ def _pickle_globals():
     with open('rdi.pkl', 'w') as f:
         pickle.dump(_rdi, f)
     
-def _load_globals():
+def load_globals():
     """ Loads the module lists in the proper order (group, nut, food, data, rdi) """
     _load_fd_group()
     _load_nutr_def()
