@@ -4,7 +4,7 @@
 # This is mostly to prevent the thing from added 37 kilos of lightly sweetened water.  Yes it did that.
 # The program adds 100g to each food when it loads the other nutrient data.
 # If you don't include beverages in the search, commenting this is usually safe
-#~Weight~^~2500~^~0~^~5000~^~1~
+~Weight~^~2500~^~0~^~2000~^~1~
 # The program assumes Energy is in kcal rather than kj.  The SR has both.
 ~Energy~^~1500~^~1000~^~2000~^~1~
 ~Calcium, Ca~^~1000~^~1000~^~2200~^~1~
@@ -43,7 +43,7 @@
 # B-12 UL ND
 ~Vitamin B-12~^~2.4~^~2.4~^~24~^~0.7~
 # Pant. Acid UL ND
-~Pantothenic acid~^~5~^~5~^~10~^~0.9~
+~Pantothenic acid~^~5~^~5~^~50~^~0.9~
 ~Choline, total~^~500~^~500~^~3500~^~0.9~
 # There are no UL data for amino acids. SWAG is to set it to double.
 ~Isoleucine~^~2.0~^~2.0~^~4.0~^~1~

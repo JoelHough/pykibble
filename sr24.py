@@ -3,7 +3,7 @@ import re
 import pickle
 import numpy as np
 import scipy.optimize as op
-#import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 import operator
 import math
 import food_selector
@@ -62,7 +62,6 @@ def _food_tree(foods):
 def display_foods(foods):
     food_selector.select_foods(_food_tree(foods))
 
-        
 class Recipe():
     def __repr__(self):
         if len(self.food_amounts) == 0:
@@ -74,17 +73,23 @@ class Recipe():
             result += ('{:>5}:{:<' + str(width) + "} | {}g\n").format(str(fa[0].id), str(fa[0]), str(fa[1] * 100.0))
         return result
 
-    # def plot_di(self):
-    #     di_vals = dict()
-    #     foods = [f.name for f in self.food_amounts]
-    #     last = (0,) * len(foods)
-    #     ind = np.arange(len(foods))
-    #     for rdi in self.target_di:            
-    #         vals = [(f[0].nut_amounts.get(rdi.nut, 0.0) * f[1]) / (rdi.lower + (rdi.upper - rdi.lower) / 2) for f in self.food_amounts.items()]
-    #         plt.bar(ind, vals, 0.5, bottom=last)
-    #         last = list(vals)
-    #     plt.show()
+    def plot_di(self):
+        #di_vals = dict()
+        foods = self.food_amounts.keys()
+        dis = self.target_di
+        last = np.array((0.0,) * len(dis))
+        ind = np.arange(len(dis))
+        for f in foods:
+            #vals = [(f[0].nut_amounts.get(rdi.nut, 0.0) * f[1]) / (rdi.lower or rdi.upper + 0 * (rdi.lower + (rdi.upper - rdi.lower) / 2)) for f in self.food_amounts.items()]
+            vals = np.array([f.nut_amounts.get(di.nut, 0.0) * self.food_amounts[f] / (di.lower or di.upper) for di in dis])
+            plt.bar(ind, vals, 0.5, bottom=last)
+            last += vals
+        plt.xticks(ind + 0.5 / 2.0, [di.nut.name for di in dis], rotation='vertical')
+        plt.show()
 
+    def sources_of(self, nut):
+        return sorted([(f[0], f[1] * f[0].nut_amounts.get(nut, 0)) for f in self.food_amounts.items()], key=lambda (x):x[1], reverse=True)
+        
     def di_off_by(self):
         di = self.get_di()
         results = []
@@ -134,7 +139,7 @@ class Recipe():
         missing = dict()
         for i in range(n):
             di = self.target_di[i]
-            norm_terms[i] = (di.upper - di.lower) / 2.0
+            norm_terms[i] = (di.upper - di.lower) / 2.0 
             di_amounts[i] = (di.lower + norm_terms[i] - di_so_far[i].amount) / norm_terms[i]
                 
             for j in range(m):
@@ -167,6 +172,9 @@ class FoodList(list):
     (manufacturer == None or food.manufacturer == manufacturer)
     )])
 
+    def by_nutrient(self, nut):
+        return FoodList(sorted(self, key=lambda (f):f.nut_amounts.get(nut, 0), reverse=True))
+    
     def id_dict(self):
         return dict(zip(self.ids(), self))
     
@@ -176,6 +184,9 @@ class FoodList(list):
     def save(self, filename):
         _save_to_file(filename, self.ids())
 
+    def __getslice__(self, i, j):
+        return FoodList(list(self)[i:j])
+    
     @staticmethod
     def load(filename):
         return FoodList(Food.by_id(_load_from_file(filename)))
@@ -220,7 +231,7 @@ class Group():
     @staticmethod
     def all():
         return _groups.values()
-    
+
     def __init__(self, group_id, name):
         self.id = group_id
         self.name = name
@@ -229,6 +240,12 @@ class Group():
         return self.name
     
 class Nutrient():
+    @staticmethod
+    def has_in_name(name):
+        for nut in _nuts.values():
+            if name in nut.name.lowercase():
+                return nut
+
     @staticmethod
     def by_name(name):
         if isinstance(name, str):
@@ -264,7 +281,7 @@ class Nutrient():
 class DI():
     def __init__(self, nut, amount, lower, upper, retention):
         self.nut = nut
-        self.amount = amount / retention
+        self.amount = amount
         self.lower = lower
         self.upper = upper
         self.retention = retention
@@ -311,6 +328,7 @@ def _load_nutr_def():
     #else:
     _nuts = dict([(nut_id, Nutrient(nut_id, units, name)) for nut_id, units, name in _get_field_lists(_sr + 'NUTR_DEF.txt', (_txt, int), (_txt, str), (_txt, _none), (_txt, str))])
     _nuts[0] = Nutrient(0, 'g', 'Weight')
+    _nuts[1] = Nutrient(1, '$', 'Cost')
 
 def _load_foods():
     """ Loads Food structures with data from FOOD_DES.txt and NUT_DATA.txt """
@@ -326,6 +344,54 @@ def _load_food_des():
     #    return True
     #else:
     _foods = dict([(food_id, Food(food_id, Group.by_id(group_id), name, manufacturer)) for food_id, group_id, name, manufacturer in _get_field_lists(_sr + 'FOOD_DES.txt', (_txt, int), (_txt, int), (_txt, str), (_txt, _none), (_txt, _none), (_txt, str))])
+
+    # Custom foods
+    assert not 1 in _foods
+    _foods[1] = Food(1, Group.by_id(400), 'Soy Lecithin Granules', '')
+    # Serving size is 7.5g, nuts are in 100g units, so amt = ssamt * 100 / 7.5
+    m = 100.0 / 7.5
+    _foods[1].add_nut(Nutrient.by_name('Energy'), 43 * m)
+    _foods[1].add_nut(Nutrient.by_name('Total lipid (fat)'), 4 * m)
+    _foods[1].add_nut(Nutrient.by_name('Fatty acids, total saturated'), 1 * m)
+    _foods[1].add_nut(Nutrient.by_name('Fatty acids, total polyunsaturated'), 2.5 * m)
+    _foods[1].add_nut(Nutrient.by_name('Fatty acids, total monounsaturated'), 0.5 * m)
+    _foods[1].add_nut(Nutrient.by_name('Carbohydrate, by difference'), 1 * m)
+    _foods[1].add_nut(Nutrient.by_name('Choline, total'), 270 * m)
+    _foods[1].add_nut(Nutrient.by_name('Calcium, Ca'), 0.06 * 1000 * m)
+    _foods[1].add_nut(Nutrient.by_name('Iron, Fe'), 0.02 * 18 * m)
+    _foods[1].add_nut(Nutrient.by_name('Vitamin E (alpha-tocopherol)'), 0.05 * 20 * m)
+    _foods[1].add_nut(Nutrient.by_name('Phosphorus, P'), 0.25 * 1000 * m)
+    _foods[1].add_nut(Nutrient.by_name('Magnesium, Mg'), 0.06 * 400 * m)
+
+    assert not 2 in _foods
+    _foods[2] = Food(2, Group.by_id(400), 'Methylcobalamin', '')
+    _foods[2].add_nut(Nutrient.by_name('Vitamin B-12'), 100000000.0)
+
+    # Costs
+    for c in [(2003, 1.22), # Basil, bulk, online
+              (11266, 0.88), # Crimini, harmons
+              (11457, 0.26), # Spinach, harmons
+              (11233, 0.44), # Kale, harmons
+              (11508, 0.38), # Sweet Potato, harmons
+              (11282, 0.18), # Red Onion, harmons
+              (20137, 0.72), # Quinoa, online
+              (20038, 0.42), # Oats, online
+              (11955, 1.97), # Sun-dried tomatoes, online
+              (12033, 2.20), # Sesame flour, online
+              (4038, 1.48), # Wheat germ oil, online
+              (16144, 0.71), # Lentils, online
+              (1, 1.94), # Soy lecithin granules, online
+              (12220, 0.46), # Flaxseed meal, online
+              (12061, 2.12), # Almond flour, online
+              (11297, 0.13), # Parsley, harmons
+              (12078, 2.47), # Brazil nuts, online
+              (4589, 3.81), # Cod liver oil, online
+              (12039, 0.78), # Sunflower seeds, online
+              (11270, 0.44), # Mustard greens, harmons
+              (11147, 0.55), # Chard, harmons
+              (16091, 0.74), # Peanuts, online
+              (42231, 2.29)]: # Flaxseed oil, online
+        _foods[c[0]].add_nut(Nutrient.by_name('Cost'), c[1])
     return False
 
 def _load_nut_data():
@@ -338,7 +404,7 @@ def _load_nut_data():
 def _load_rdi():
     """ Loads rdi_target """
     global _rdi
-    _rdi = [DI(Nutrient.by_name(name), amount, lower, upper, retention) for name, amount, lower, upper, retention in _get_field_lists("rdi_target", (_txt, str), (_txt, float), (_txt, float), (_txt, float), (_txt, float))]
+    _rdi = [DI(Nutrient.by_name(name), amount / retention, lower / retention, upper / retention, retention) for name, amount, lower, upper, retention in _get_field_lists("rdi_target", (_txt, str), (_txt, float), (_txt, float), (_txt, float), (_txt, float))]
 
 def _pickle_globals():
     with open(_sr + 'nuts.pkl', 'w') as f:
