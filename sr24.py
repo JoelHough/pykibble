@@ -159,9 +159,9 @@ class Recipe():
                 self.add_food(foods[j], amounts[j] * 100.0)
         return error
         
-    def __init__(self, rdi):
+    def __init__(self, rdi=None):
         self.food_amounts = dict()
-        self.target_di = rdi
+        self.target_di = rdi or _rdi
 
 class FoodList(list):
     def where(self, name_has=None, name_has_not=None, group=None, group_in=None, id=None, id_in=None, manufacturer=None):
